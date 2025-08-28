@@ -26,7 +26,7 @@ export default function ReviewHeader({
   selection,
   onBulkAction
 }: ReviewHeaderProps) {
-  const totalSelected = selection.approved + selection.rejected + selection.deleted;
+  const totalSelected = selection.approved + selection.deleted;
   
   return (
     <div className="mb-6 space-y-4">
@@ -61,45 +61,39 @@ export default function ReviewHeader({
             </p>
           </div>
           <div>
-            <span className="text-gray-500">Selection</span>
-            <p className="font-semibold">{totalSelected} / {stats.total}</p>
+            <span className="text-gray-500">Status</span>
+            <p className="font-semibold">
+              {selection.approved > 0 && (
+                <span className="text-green-600">{selection.approved} to approve</span>
+              )}
+              {selection.approved > 0 && selection.deleted > 0 && (
+                <span className="text-gray-400 mx-1">•</span>
+              )}
+              {selection.deleted > 0 && (
+                <span className="text-red-600">{selection.deleted} to delete</span>
+              )}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Bulk Actions */}
-      {totalSelected > 0 && (
+      {/* Simplified Bulk Actions - Delete All Only */}
+      {selection.deleted < stats.total && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-blue-900">
-              {totalSelected} record{totalSelected !== 1 ? 's' : ''} selected
+              Bulk Actions
               <span className="ml-2 text-blue-700">
-                ({selection.approved} approved, {selection.rejected} rejected, {selection.deleted} marked for deletion)
+                ({selection.approved} will be approved, {selection.deleted} marked for deletion)
               </span>
             </p>
-            <div className="flex gap-2">
-              {/* <button
-                onClick={() => onBulkAction('approve')}
-                className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-1"
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                Approve All
-              </button>
-              <button
-                onClick={() => onBulkAction('reject')}
-                className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center gap-1"
-              >
-                <XCircle className="h-4 w-4" />
-                Reject All
-              </button> */}
-              <button
-                onClick={() => onBulkAction('delete')}
-                className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center gap-1"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete All
-              </button>
-            </div>
+            <button
+              onClick={() => onBulkAction('delete')}
+              className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center gap-1"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete All Records
+            </button>
           </div>
         </div>
       )}

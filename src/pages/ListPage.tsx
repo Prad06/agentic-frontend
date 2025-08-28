@@ -11,7 +11,7 @@ interface PendingReview {
     submittedAt: string;
 }
 
-const API_URL = "http://localhost:4200";
+const API_URL = "http://35.209.158.116:4200";
 export default function ListPage() {
     const { category } = useParams<{ category: string }>();
     const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([]);

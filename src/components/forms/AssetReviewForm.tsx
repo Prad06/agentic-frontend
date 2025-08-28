@@ -26,11 +26,12 @@ export default function AssetReviewForm({ reviewData, onSubmit }: AssetReviewFor
     console.log('Records state updated:', records);
   }, [records]);
 
+  // Updated selection to show approved (non-deleted) and deleted counts
   const selection = useMemo(() => {
     return records.reduce(
       (acc, record) => ({
-        approved: acc.approved + (record._action === 'approve' ? 1 : 0),
-        rejected: acc.rejected + (record._action === 'reject' ? 1 : 0),
+        approved: acc.approved + ((!record._action || record._action === null) && !record._isDeleted ? 1 : 0),
+        rejected: acc.rejected, // Always 0 now
         deleted: acc.deleted + (record._action === 'delete' || record._isDeleted ? 1 : 0),
       }),
       { approved: 0, rejected: 0, deleted: 0 }
@@ -38,6 +39,9 @@ export default function AssetReviewForm({ reviewData, onSubmit }: AssetReviewFor
   }, [records]);
 
   const handleRecordAction = (index: number, action: 'approve' | 'reject' | 'delete' | null) => {
+    // This only updates local state, no API calls
+    console.log(`Record ${index} action changed to:`, action);
+    
     const newRecords = [...records];
     newRecords[index] = {
       ...newRecords[index],
@@ -66,12 +70,15 @@ export default function AssetReviewForm({ reviewData, onSubmit }: AssetReviewFor
     e.preventDefault();
     setIsSaving(true);
 
+    // Prepare submission data with auto-approval for non-deleted records
     const submissionData = {
       reviewId: reviewData.id,
       category: reviewData.category,
       ticker: reviewData.ticker,
       records: records.map(record => ({
         ...record,
+        // Auto-approve if not marked for deletion
+        _action: record._isDeleted || record._action === 'delete' ? 'delete' : 'approve',
         _markedForDeletion: record._action === 'delete' || record._isDeleted
       }))
     };
@@ -93,13 +100,16 @@ export default function AssetReviewForm({ reviewData, onSubmit }: AssetReviewFor
         reasoning={reviewData.reasoning}
         stats={reviewData.stats}
         selection={selection}
-        onBulkAction={(action) =>
-          setRecords(records.map(r => ({
-            ...r,
-            _action: action,
-            _isDeleted: action === 'delete'
-          })))
-        }
+        onBulkAction={(action) => {
+          // Only handle delete action in bulk
+          if (action === 'delete') {
+            setRecords(records.map(r => ({
+              ...r,
+              _action: 'delete',
+              _isDeleted: true
+            })));
+          }
+        }}
       />
 
       <div className="space-y-6">
@@ -148,20 +158,25 @@ export default function AssetReviewForm({ reviewData, onSubmit }: AssetReviewFor
         <div className="flex items-center justify-between">
           <button type="button" onClick={() => navigate(-1)}
             className="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-          <button type="submit" disabled={isSaving}
-            className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50">
-            {isSaving ? (
-              <>
-                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                Save All Changes
-              </>
-            )}
-          </button>
+          <div className="flex flex-col items-end gap-1">
+            <button type="submit" disabled={isSaving}
+              className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50">
+              {isSaving ? (
+                <>
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save All Changes
+                </>
+              )}
+            </button>
+            <span className="text-xs text-gray-500">
+              {selection.approved} will be approved, {selection.deleted} will be deleted
+            </span>
+          </div>
         </div>
       </div>
     </form>

@@ -8,7 +8,7 @@ const HomePage: React.FC = () => {
     const [stats, setStats] = useState({ pending: 0, completed_today: 0, in_progress: 0 });
 
     useEffect(() => {
-        fetch('http://localhost:4200/api/stats/quick')
+        fetch('http://35.209.158.116:4200/api/stats/quick')
             .then(res => res.json())
             .then(data => setStats(data));
     }, []);

@@ -34,14 +34,27 @@ export default function RecordCard({
 
   const badge = getStatusBadge();
 
+  const [pendingAction, setPendingAction] = React.useState<'delete' | null>(
+    action === 'delete' ? 'delete' : null
+  );
+
+  React.useEffect(() => {
+    setPendingAction(action === 'delete' ? 'delete' : null);
+  }, [action]);
+
+  const handleDeleteToggle = () => {
+    console.log('Toggling delete action');
+    const newAction = pendingAction === 'delete' ? null : 'delete';
+    setPendingAction(newAction);
+    onActionChange(newAction);
+  };
+
   return (
     <div 
       className={`
         bg-white rounded-lg shadow-sm border-2 transition-all duration-200
-        ${action === 'approve' ? 'border-green-500 shadow-green-100' : ''}
-        ${action === 'reject' ? 'border-red-500 shadow-red-100' : ''}
-        ${action === 'delete' || isDeleted ? 'border-gray-400 opacity-60' : ''}
-        ${!action && !isDeleted ? 'border-gray-200 hover:shadow-md' : ''}
+        ${pendingAction === 'delete' || isDeleted ? 'border-gray-400 opacity-60' : ''}
+        ${!pendingAction && !isDeleted ? 'border-gray-200 hover:shadow-md' : ''}
       `}
     >
       {/* Header */}
@@ -63,42 +76,14 @@ export default function RecordCard({
               </div>
             </div>
           </div>
-          
-          {/* Action Buttons */}
+          {/* Delete Button Only */}
           <div className="flex items-center gap-2">
             <button
-              onClick={() => onActionChange(action === 'approve' ? null : 'approve')}
+              type="button"
+              onClick={handleDeleteToggle}
               className={`
-                p-2 rounded-md transition-all
-                ${action === 'approve' 
-                  ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                  : 'text-gray-400 hover:text-green-600 hover:bg-gray-100'
-                }
-              `}
-              title="Approve"
-              disabled={isDeleted}
-            >
-              <CheckCircle2 className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => onActionChange(action === 'reject' ? null : 'reject')}
-              className={`
-                p-2 rounded-md transition-all
-                ${action === 'reject' 
-                  ? 'bg-red-100 text-red-700 hover:bg-red-200' 
-                  : 'text-gray-400 hover:text-red-600 hover:bg-gray-100'
-                }
-              `}
-              title="Reject"
-              disabled={isDeleted}
-            >
-              <XCircle className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => onActionChange(action === 'delete' || isDeleted ? null : 'delete')}
-              className={`
-                p-2 rounded-md transition-all
-                ${action === 'delete' || isDeleted
+                p-2 rounded-md transition-all flex items-center gap-2
+                ${pendingAction === 'delete' || isDeleted
                   ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
                   : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                 }
@@ -106,34 +91,23 @@ export default function RecordCard({
               title="Mark for Deletion"
             >
               <Trash2 className="h-5 w-5" />
+              <span className="text-sm">
+                {pendingAction === 'delete' || isDeleted ? 'Marked for Deletion' : 'Delete'}
+              </span>
             </button>
           </div>
         </div>
-        
-        {/* Action Status */}
-        {(action || isDeleted) && (
+        {/* Status message for non-deleted items */}
+        {!pendingAction && !isDeleted && (
           <div className="mt-3 flex items-center gap-2">
-            {action === 'approve' && (
-              <span className="text-sm text-green-700 flex items-center gap-1">
-                <CheckCircle2 className="h-4 w-4" /> Marked for approval
-              </span>
-            )}
-            {action === 'reject' && (
-              <span className="text-sm text-red-700 flex items-center gap-1">
-                <XCircle className="h-4 w-4" /> Marked for rejection
-              </span>
-            )}
-            {(action === 'delete' || isDeleted) && (
-              <span className="text-sm text-gray-600 flex items-center gap-1">
-                <Trash2 className="h-4 w-4" /> Marked for deletion
-              </span>
-            )}
+            <span className="text-sm text-green-600 flex items-center gap-1">
+              <CheckCircle2 className="h-4 w-4" /> Will be approved with any changes
+            </span>
           </div>
         )}
       </div>
-      
       {/* Content */}
-      <div className={`px-6 py-4 ${isDeleted || action === 'delete' ? 'opacity-50' : ''}`}>
+      <div className={`px-6 py-4 ${isDeleted || pendingAction === 'delete' ? 'opacity-50' : ''}`}>
         {children}
       </div>
     </div>
