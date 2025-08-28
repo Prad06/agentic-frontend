@@ -6,7 +6,7 @@ import CatalystReviewForm from '../components/forms/CatalystReviewForm';
 import { useParams } from 'react-router-dom';
 import type { ReviewJob } from '../types/review';
 
-const API_URL = "http://localhost:4200";
+const API_URL = "http://35.209.158.116:4200";
 export default function ReviewFormPage() {
   const { reviewId } = useParams();
   const [reviewData, setReviewData] = useState<ReviewJob | null>(null);
@@ -26,8 +26,7 @@ export default function ReviewFormPage() {
 
     const onSubmit = async (data: any) => {
         try {
-            // Make API call to submit the review
-            const response = await fetch('/api/reviews', {
+            const response = await fetch(`${API_URL}/api/reviews`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -39,7 +38,7 @@ export default function ReviewFormPage() {
             });
 
             if (!response.ok) {
-            throw new Error('Failed to submit review');
+                throw new Error('Failed to submit review');
             }
 
             const result = await response.json();

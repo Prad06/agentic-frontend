@@ -78,7 +78,7 @@ export default function ReviewHeader({
               </span>
             </p>
             <div className="flex gap-2">
-              <button
+              {/* <button
                 onClick={() => onBulkAction('approve')}
                 className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-1"
               >
@@ -91,7 +91,7 @@ export default function ReviewHeader({
               >
                 <XCircle className="h-4 w-4" />
                 Reject All
-              </button>
+              </button> */}
               <button
                 onClick={() => onBulkAction('delete')}
                 className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center gap-1"

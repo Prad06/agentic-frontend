@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Edit2, Check, X, Info } from 'lucide-react';
 import type { FieldValue } from '../../types/review';
 
@@ -26,27 +26,30 @@ export default function DiffField<T = string>({
   helpText
 }: DiffFieldProps<T>) {
   const [isEditing, setIsEditing] = useState(false);
-  const [tempValue, setTempValue] = useState(value.current);
-  
+  const [tempValue, setTempValue] = useState(value.current); // case 1
+
+  useEffect(() => {
+    setTempValue(value.current);
+  }, [value.current]);
+
   const hasChanged = status === 'updated' && value.previous !== value.current;
   const isNew = status === 'new';
-  
-  const handleSave = () => {
-    onChange?.(tempValue);
-    setIsEditing(false);
-  };
-  
+
   const handleCancel = () => {
-    setTempValue(value.current);
+    setTempValue(value.current); // revert
     setIsEditing(false);
   };
-  
+
   const renderEditMode = () => {
     if (options) {
       return (
         <select
           value={String(tempValue)}
-          onChange={(e) => setTempValue(e.target.value as T)}
+          onChange={(e) => {
+            const newVal = e.target.value as T;
+            setTempValue(newVal);
+            onChange?.(newVal);
+          }}
           className="w-full px-3 py-1.5 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           autoFocus
         >
@@ -58,29 +61,37 @@ export default function DiffField<T = string>({
         </select>
       );
     }
-    
+
     if (typeof value.current === 'boolean') {
       return (
         <input
           type="checkbox"
           checked={tempValue as boolean}
-          onChange={(e) => setTempValue(e.target.checked as T)}
+          onChange={(e) => {
+            const newVal = e.target.checked as T;
+            setTempValue(newVal);
+            onChange?.(newVal);
+          }}
           className="h-5 w-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
         />
       );
     }
-    
+
     return (
       <input
         type="text"
         value={String(tempValue)}
-        onChange={(e) => setTempValue(e.target.value as T)}
+        onChange={(e) => {
+          const newVal = e.target.value as T;
+          setTempValue(newVal);
+          onChange?.(newVal);
+        }}
         className="w-full px-3 py-1.5 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         autoFocus
       />
     );
   };
-  
+
   const renderViewMode = () => {
     if (typeof value.current === 'boolean') {
       return (
@@ -89,17 +100,18 @@ export default function DiffField<T = string>({
         </span>
       );
     }
-    
     return <span className="font-medium text-gray-900">{String(value.current) || '—'}</span>;
   };
-  
+
   return (
-    <div className={`
-      py-3 px-4 rounded-lg transition-all
-      ${hasChanged ? 'bg-blue-50 border border-blue-200' : ''}
-      ${isNew ? 'bg-green-50 border border-green-200' : ''}
-      ${!hasChanged && !isNew ? 'bg-gray-50' : ''}
-    `}>
+    <div
+      className={`
+        py-3 px-4 rounded-lg transition-all
+        ${hasChanged ? 'bg-blue-50 border border-blue-200' : ''}
+        ${isNew ? 'bg-green-50 border border-green-200' : ''}
+        ${!hasChanged && !isNew ? 'bg-gray-50' : ''}
+      `}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
@@ -116,17 +128,19 @@ export default function DiffField<T = string>({
               </div>
             )}
           </div>
-          
+
           {isEditing ? (
             <div className="flex items-center gap-2">
               {renderEditMode()}
               <button
-                onClick={handleSave}
+                type="button"
+                onClick={() => setIsEditing(false)}
                 className="p-1.5 text-green-600 hover:bg-green-100 rounded"
               >
                 <Check className="h-4 w-4" />
               </button>
               <button
+                type="button"
                 onClick={handleCancel}
                 className="p-1.5 text-red-600 hover:bg-red-100 rounded"
               >
@@ -145,6 +159,7 @@ export default function DiffField<T = string>({
               </div>
               {isEditable && !isDisabled && (
                 <button
+                  type="button"
                   onClick={() => setIsEditing(true)}
                   className="ml-2 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
                 >
